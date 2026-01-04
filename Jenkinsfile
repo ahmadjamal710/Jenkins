@@ -34,5 +34,14 @@ pipeline {
                 '''
             }
         }
+
+        stage('Docker-Image-Verify') {
+            steps {
+                sh '''
+                echo Verifying Docker image ${IMAGE_NAME}:v${TAG}
+                docker images --filter "reference=${IMAGE_NAME}:v${TAG}"
+                '''
+            }
+        }
     }
 }
