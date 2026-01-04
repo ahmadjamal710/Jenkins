@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "myapp"
-        TAG = "1.0"
+        TAG = "v${BUILD_NUMBER}"  // استخدم الـ Jenkins Build Number
     }
 
     stages {
@@ -29,8 +29,8 @@ pipeline {
         stage('Docker-Build') {
             steps {
                 sh '''
-                echo Building Docker image ${IMAGE_NAME}:v${TAG}
-                docker build -t ${IMAGE_NAME}:v${TAG} .
+                echo Building Docker image ${IMAGE_NAME}:${TAG}
+                docker build -t ${IMAGE_NAME}:${TAG} .
                 '''
             }
         }
@@ -38,8 +38,8 @@ pipeline {
         stage('Docker-Image-Verify') {
             steps {
                 sh '''
-                echo Verifying Docker image ${IMAGE_NAME}:v${TAG}
-                docker images --filter "reference=${IMAGE_NAME}:v${TAG}"
+                echo Verifying Docker image ${IMAGE_NAME}:${TAG}
+                docker images --filter "reference=${IMAGE_NAME}:${TAG}"
                 '''
             }
         }
