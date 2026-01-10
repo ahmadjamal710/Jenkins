@@ -38,7 +38,6 @@ pipeline {
         }
 
         stage('Docker-Build') {
-            
             steps {
                 sh "echo Building Docker image ${Docker_Image_Name}:${env.BUILD_NUMBER}"
                 sh "docker build -t ${Docker_Image_Name}:${env.BUILD_NUMBER} ."
