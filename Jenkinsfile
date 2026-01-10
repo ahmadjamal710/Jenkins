@@ -14,21 +14,20 @@ pipeline {
             }
         }
 
-        stage('Docker-Verify') {
-            steps {
-                retry(3) {
-                    sh 'docker --version'
+        stage('Pre-Checks') {
+            parallel {
+
+                stage('Docker-Verify') {
+                    steps {
+                        sh 'docker --version'
+                    }
                 }
 
-                timeout(time: 10, unit: 'SECONDS') {
-                    sh 'sleep 30'
+                stage('Git-Verify') {
+                    steps {
+                        sh 'git --version'
+                    }
                 }
-            }
-        }
-
-        stage('Git-Verify') {
-            steps {
-                sh 'git --version'
             }
         }
 
@@ -43,7 +42,10 @@ pipeline {
 
         stage('Docker-Image-Verify') {
             steps {
-                sh 'docker images --filter "reference=${IMAGE_NAME}:${TAG}"'
+                sh '''
+                echo Verifying Docker image ${IMAGE_NAME}:${TAG}
+                docker images --filter reference=${IMAGE_NAME}:${TAG}
+                '''
             }
         }
     }
