@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "myapp"
-        TAG = "v${BUILD_NUMBER}"  // استخدم الـ Jenkins Build Number
+        TAG = "v${BUILD_NUMBER}"
     }
 
     stages {
@@ -16,7 +16,14 @@ pipeline {
 
         stage('Docker-Verify') {
             steps {
-                sh 'docker --version'
+                retry(3) {
+                    sh 'docker --version'
+                }
+            }
+            timeout(time: 10, unit: 'SECONDS') {
+                steps {
+                    sh 'sleep 30'
+                }
             }
         }
 
@@ -38,7 +45,6 @@ pipeline {
         stage('Docker-Image-Verify') {
             steps {
                 sh '''
-                echo Verifying Docker image ${IMAGE_NAME}:${TAG}
                 docker images --filter "reference=${IMAGE_NAME}:${TAG}"
                 '''
             }
