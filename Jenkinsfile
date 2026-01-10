@@ -19,9 +19,8 @@ pipeline {
                 retry(3) {
                     sh 'docker --version'
                 }
-            }
-            timeout(time: 10, unit: 'SECONDS') {
-                steps {
+
+                timeout(time: 10, unit: 'SECONDS') {
                     sh 'sleep 30'
                 }
             }
@@ -44,9 +43,7 @@ pipeline {
 
         stage('Docker-Image-Verify') {
             steps {
-                sh '''
-                docker images --filter "reference=${IMAGE_NAME}:${TAG}"
-                '''
+                sh 'docker images --filter "reference=${IMAGE_NAME}:${TAG}"'
             }
         }
     }
