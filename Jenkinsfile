@@ -38,11 +38,7 @@ pipeline {
         }
 
         stage('Docker-Build') {
-            when {
-                expression {
-                    return env.BRANCH_NAME == "main"
-                }
-            }
+            
             steps {
                 sh "echo Building Docker image ${Docker_Image_Name}:${env.BUILD_NUMBER}"
                 sh "docker build -t ${Docker_Image_Name}:${env.BUILD_NUMBER} ."
