@@ -12,7 +12,7 @@ pipeline {
                 checkout scm
             }
         }
-        
+
         stage('Check Branch') {
             steps {
                 echo "Current branch: ${env.GIT_BRANCH}"
@@ -43,9 +43,11 @@ pipeline {
                 }
             }
             steps {
-                sh "echo Building Docker image ${Docker_Image_Name}:${env.BUILD_NUMBER}"
-                sh "docker build -t ${Docker_Image_Name}:${env.BUILD_NUMBER} ."
-                sh "docker inspect ${Docker_Image_Name}:${env.BUILD_NUMBER}"
+                retry(3) {
+                    sh "echo Building Docker image ${Docker_Image_Name}:${env.BUILD_NUMBER}"
+                    sh "docker build -t ${Docker_Image_Name}:${env.BUILD_NUMBER} ."
+                    sh "docker inspect ${Docker_Image_Name}:${env.BUILD_NUMBER}"
+                }
             }
         }
 
@@ -67,6 +69,11 @@ pipeline {
                 sh "sudo docker run -itd -p 80:80 ${Docker_Image_Name}:${env.BUILD_NUMBER}"
                 sh "sudo docker ps"
             }
+        }
+    }
+    post {
+        always {
+            echo "Pipeline finished for build ${env.BUILD_NUMBER} on branch ${env.GIT_BRANCH}"
         }
     }
 }
