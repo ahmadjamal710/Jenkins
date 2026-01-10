@@ -1,9 +1,13 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout()
+    }
+
     environment {
-        IMAGE_NAME = "myapp"
-        TAG = "v${BUILD_NUMBER}"
+        Docker_Image_Name = "myapp"
+        TAG = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -33,18 +37,19 @@ pipeline {
 
         stage('Docker-Build') {
             steps {
-                sh '''
-                echo Building Docker image ${IMAGE_NAME}:${TAG}
-                docker build -t ${IMAGE_NAME}:${TAG} .
-                '''
+                sh """
+                echo Building Docker image ${Docker_Image_Name}:${TAG}
+                docker build -t ${Docker_Image_Name}:${TAG} .
+                docker inspect ${Docker_Image_Name}:${TAG}
+                """
             }
         }
 
         stage('Docker-Image-Verify') {
             steps {
                 sh '''
-                echo Verifying Docker image ${IMAGE_NAME}:${TAG}
-                docker images --filter reference=${IMAGE_NAME}:${TAG}
+                echo Verifying Docker image
+                docker images --filter reference=${Docker_Image_Name}:${TAG}
                 '''
             }
         }
