@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "myapp"
+        Docker_Image_Name = "myapp"
     }
 
     options {
@@ -16,7 +16,9 @@ pipeline {
 
                 stage('Docker-Verify') {
                     steps {
-                        sh 'docker --version'
+                        retry(3) {
+                            sh 'docker --version'
+                        }
                     }
                 }
 
@@ -31,24 +33,22 @@ pipeline {
         stage('Docker-Build') {
             when {
                 expression {
-                    return env.GIT_BRANCH == "origin/test"
+                    return env.GIT_BRANCH == "origin/main"
                 }
             }
             steps {
-                sh """
-                echo Building Docker image ${IMAGE_NAME}:${env.BUILD_NUMBER}
-                docker build -t ${IMAGE_NAME}:${env.BUILD_NUMBER} .
-                docker inspect ${IMAGE_NAME}:${env.BUILD_NUMBER}
-                """
+                retry(3) {
+                    sh "echo Building Docker image ${Docker_Image_Name}:${env.BUILD_NUMBER}"
+                    sh "docker build -t ${Docker_Image_Name}:${env.BUILD_NUMBER} ."
+                    sh "docker inspect ${Docker_Image_Name}:${env.BUILD_NUMBER}"
+                }
             }
         }
 
         stage('Docker-Image-Verify') {
             steps {
-                sh """
-                echo Verifying Docker image
-                docker images --filter reference=${IMAGE_NAME}:${env.BUILD_NUMBER}
-                """
+                sh "echo Verifying Docker image"
+                sh "docker images --filter reference=${Docker_Image_Name}:${env.BUILD_NUMBER}"
             }
         }
     }
