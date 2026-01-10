@@ -15,7 +15,8 @@ pipeline {
 
         stage('Check Branch') {
             steps {
-                echo "Current branch: ${env.GIT_BRANCH}"
+                echo "GIT_BRANCH: ${env.GIT_BRANCH}"
+                echo "BRANCH_NAME: ${env.BRANCH_NAME}"
             }
         }
 
@@ -39,15 +40,13 @@ pipeline {
         stage('Docker-Build') {
             when {
                 expression {
-                    return env.GIT_BRANCH == "main" || env.GIT_BRANCH == "origin/main"
+                    return env.BRANCH_NAME == "main"
                 }
             }
             steps {
-                retry(3) {
-                    sh "echo Building Docker image ${Docker_Image_Name}:${env.BUILD_NUMBER}"
-                    sh "docker build -t ${Docker_Image_Name}:${env.BUILD_NUMBER} ."
-                    sh "docker inspect ${Docker_Image_Name}:${env.BUILD_NUMBER}"
-                }
+                sh "echo Building Docker image ${Docker_Image_Name}:${env.BUILD_NUMBER}"
+                sh "docker build -t ${Docker_Image_Name}:${env.BUILD_NUMBER} ."
+                sh "docker inspect ${Docker_Image_Name}:${env.BUILD_NUMBER}"
             }
         }
 
@@ -71,10 +70,4 @@ pipeline {
             }
         }
     }
-    post {
-        always {
-            echo "Pipeline finished for build ${env.BUILD_NUMBER} on branch ${env.GIT_BRANCH}"
-        }
-    }
 }
-   
