@@ -48,14 +48,14 @@ pipeline {
 
         stage('Docker-CleanUp') {
             steps {
-                sh 'sudo docker rm -f $(sudo docker ps -a -q) 2> /dev/null || true'
+                sh ' docker rm -f $( docker ps -a -q) 2> /dev/null || true'
             }
         }
 
         stage('Docker-Deploy') {
             steps {
-                sh "sudo docker run -itd -p 80:80 ${IMAGE_NAME}:${env.BUILD_NUMBER}"
-                sh "sudo docker ps"
+                sh " docker run -itd -p 80:80 ${IMAGE_NAME}:${env.BUILD_NUMBER}"
+                sh " docker ps"
             }
         }
     }
