@@ -13,7 +13,6 @@ pipeline {
 
         stage('Pre-Checks') {
             parallel {
-
                 stage('Docker-Verify') {
                     steps {
                         sh 'docker --version'
@@ -29,16 +28,11 @@ pipeline {
         }
 
         stage('Docker-Build') {
-            when {
-                expression {
-                    return env.GIT_BRANCH == "origin/test"
-                }
-            }
             steps {
                 sh """
-                echo Building Docker image ${IMAGE_NAME}:${env.BUILD_NUMBER}
-                docker build -t ${IMAGE_NAME}:${env.BUILD_NUMBER} .
-                docker inspect ${IMAGE_NAME}:${env.BUILD_NUMBER}
+                    echo Building Docker image ${IMAGE_NAME}:${env.BUILD_NUMBER}
+                    docker build -t ${IMAGE_NAME}:${env.BUILD_NUMBER} .
+                    docker inspect ${IMAGE_NAME}:${env.BUILD_NUMBER}
                 """
             }
         }
@@ -46,9 +40,22 @@ pipeline {
         stage('Docker-Image-Verify') {
             steps {
                 sh """
-                echo Verifying Docker image
-                docker images --filter reference=${IMAGE_NAME}:${env.BUILD_NUMBER}
+                    echo Verifying Docker image
+                    docker images --filter reference=${IMAGE_NAME}:${env.BUILD_NUMBER}
                 """
+            }
+        }
+
+        stage('Docker-CleanUp') {
+            steps {
+                sh 'sudo docker rm -f $(sudo docker ps -a -q) 2> /dev/null || true'
+            }
+        }
+
+        stage('Docker-Deploy') {
+            steps {
+                sh "sudo docker run -itd -p 80:80 ${IMAGE_NAME}:${env.BUILD_NUMBER}"
+                sh "sudo docker ps"
             }
         }
     }
