@@ -6,57 +6,55 @@ pipeline {
     }
 
     options {
-        buildDiscarder(logRotator(numToKeepStr: '1'))
+        buildDiscarder(logRotator(numToKeepStr: '3'))
+        timestamps()
     }
 
     stages {
 
-        stage('Pre-Checks') {
-            parallel {
-                stage('Docker-Verify') {
-                    steps {
-                        sh 'docker --version'
-                    }
-                }
-
-                stage('Git-Verify') {
-                    steps {
-                        sh 'git --version'
-                    }
-                }
+        stage('Verify Tools') {
+            steps {
+                sh 'git --version || true'
+                sh 'docker --version'
             }
         }
 
-        stage('Docker-Build') {
+        stage('Docker Build') {
             steps {
                 sh """
-                    echo Building Docker image ${IMAGE_NAME}:${env.BUILD_NUMBER}
-                    docker build -t ${IMAGE_NAME}:${env.BUILD_NUMBER} .
-                    docker inspect ${IMAGE_NAME}:${env.BUILD_NUMBER}
+                  echo "Building image ${IMAGE_NAME}:${BUILD_NUMBER}"
+                  docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
                 """
             }
         }
 
-        stage('Docker-Image-Verify') {
+        stage('Docker Image Verify') {
             steps {
                 sh """
-                    echo Verifying Docker image
-                    docker images --filter reference=${IMAGE_NAME}:${env.BUILD_NUMBER}
+                  docker images | grep ${IMAGE_NAME}
                 """
             }
         }
 
-        stage('Docker-CleanUp') {
+        stage('Docker Deploy') {
             steps {
-                sh ' docker rm -f $( docker ps -a -q) 2> /dev/null || true'
+                sh """
+                  docker run -d \
+                    --name ${IMAGE_NAME}_${BUILD_NUMBER} \
+                    -p 8081:80 \
+                    ${IMAGE_NAME}:${BUILD_NUMBER}
+                """
+                sh 'docker ps'
             }
         }
+    }
 
-        stage('Docker-Deploy') {
-            steps {
-                sh " docker run -itd -p 80:80 ${IMAGE_NAME}:${env.BUILD_NUMBER}"
-                sh " docker ps"
-            }
+    post {
+        failure {
+            echo "❌ Build Failed"
+        }
+        success {
+            echo "✅ Build Succeeded"
         }
     }
 }
