@@ -1,20 +1,31 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Test') {
-            steps {
-                sh 'echo "Jenkins is working ✅"'
-            }
-        }
+    environment {
+        IMAGE_NAME = "devops-image"
     }
 
-    post {
-        success {
-            echo 'Build SUCCESS 🎉'
+    stages {
+
+        stage('Docker-Verify') {
+            steps {
+                sh 'docker --version'
+            }
         }
-        failure {
-            echo 'Build FAILED ❌'
+
+        stage('Git-Verify') {
+            steps {
+                sh 'git --version'
+            }
+        }
+
+        stage('Docker-Build') {
+            steps {
+                sh '''
+                  echo "Building Docker Image"
+                  docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
+                '''
+            }
         }
     }
 }
